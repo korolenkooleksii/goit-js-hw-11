@@ -1,15 +1,19 @@
 import Notiflix from 'notiflix';
-import SearchApiImages from './SearchApiImages.js';
+import SearchApiImages from './script/SearchApiImages.js';
+import LoadMoreBtn from './script/components/loadMoreBtn.js';
 
 const form = document.querySelector('.search-form');
-const searchBtn = document.querySelector('[type="submit"]');
 const gallery = document.querySelector('.gallery');
-const loadMoreBtn = document.querySelector('.load-more');
+// const loadMoreBtn = document.querySelector('.load-more');
+// т.к. loadMoreBtn это обект (новый экземпляр
+// LoadMoreBtn), то вешаем клик на кнопку,
+// т.е. loadMoreBtn.button
 
 const searchApiImages = new SearchApiImages();
+const loadMoreBtn = new LoadMoreBtn({ selector: '.load-more', isHidden: true });
 
 form.addEventListener('submit', searchImg);
-loadMoreBtn.addEventListener('click', loadMore);
+loadMoreBtn.button.addEventListener('click', fetchImages);
 
 function searchImg(e) {
   e.preventDefault();
@@ -19,40 +23,28 @@ function searchImg(e) {
 
   searchApiImages.searchQuery = value;
 
-  searchApiImages
-    .getImages(value)
-    .then(hits => {
-      if (hits.length === 0) {
-        Notiflix.Notify.info(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-        return;
-      }
+  searchApiImages.resetPage();
+  clearImagesCollection();
 
-      if (searchApiImages.page === 1) {
-        Notiflix.Notify.success(
-          `Hooray! We found ${searchApiImages.totalHits} images.`
-        );
-      }
+  loadMoreBtn.show();
 
-      createImagesCollection(hits);
-    })
-    .catch(errorShow)
-    .finally(resetForm);
+  fetchImages().finally(resetForm);
 }
 
-function loadMore() {
-  searchApiImages
-    .getImages(searchApiImages.searchQuery)
+function fetchImages() {
+  loadMoreBtn.disable();
+  return searchApiImages
+    .getImages()
     .then(hits => {
       if (hits.length === 0) {
-        Notiflix.Notify.info(
+        Notiflix.Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         );
+        loadMoreBtn.hide();
         return;
       }
 
-      if (searchApiImages.page === 1) {
+      if (searchApiImages.page === 2) {
         Notiflix.Notify.success(
           `Hooray! We found ${searchApiImages.totalHits} images.`
         );
@@ -60,8 +52,7 @@ function loadMore() {
 
       createImagesCollection(hits);
     })
-    .catch(errorShow)
-    .finally(resetForm);
+    .catch(errorShow);
 }
 
 function createImagesCollection(arr) {
@@ -98,15 +89,16 @@ function createImagesCollection(arr) {
     .join('');
 
   gallery.insertAdjacentHTML('beforeend', markupImagesCollectiom);
+  loadMoreBtn.enable();
 }
 
-function clearImagesWrapper() {
-  imagesWrapper.innerHTML = '';
+function clearImagesCollection() {
+  gallery.innerHTML = '';
 }
 
 function resetForm() {
   () => form.reset();
-};
+}
 
 function errorShow(error) {
   console.error(error);

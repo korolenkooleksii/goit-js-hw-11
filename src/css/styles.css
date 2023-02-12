@@ -72,6 +72,8 @@ img {
   display: block;
   width: 100%;
   object-fit: cover;
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
 }
 
 .gallery {
@@ -83,9 +85,10 @@ img {
 }
 
 .photo-card {
+  border-radius: 10px;
   flex-basis: calc((100% - 90px) / 4);
-  box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.12),
-  0px 4px 4px rgba(0, 0, 0, 0.06), 1px 4px 6px rgba(0, 0, 0, 0.16);
+  box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.12), 0px 4px 4px rgba(0, 0, 0, 0.06),
+    1px 4px 6px rgba(0, 0, 0, 0.16);
 }
 
 .info {
@@ -118,7 +121,8 @@ button:disabled {
 /* button.hidden {
   display: none;
 } */
-.visually-hidden {
+
+button.visually-hidden {
   position: absolute;
   width: 1px;
   height: 1px;
