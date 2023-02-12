@@ -4,11 +4,12 @@ import SearchApiImages from './SearchApiImages.js';
 const form = document.querySelector('.search-form');
 const searchBtn = document.querySelector('[type="submit"]');
 const gallery = document.querySelector('.gallery');
-console.log('gallery', gallery);
+const loadMoreBtn = document.querySelector('.load-more');
 
 const searchApiImages = new SearchApiImages();
 
 form.addEventListener('submit', searchImg);
+loadMoreBtn.addEventListener('click', loadMore);
 
 function searchImg(e) {
   e.preventDefault();
@@ -19,22 +20,48 @@ function searchImg(e) {
   searchApiImages.searchQuery = value;
 
   searchApiImages
-    .getImages()
-    .then(arr => {
-      if (arr.length === 0) {
+    .getImages(value)
+    .then(hits => {
+      if (hits.length === 0) {
         Notiflix.Notify.info(
           'Sorry, there are no images matching your search query. Please try again.'
         );
         return;
       }
-      console.log(arr);
 
-      createImagesCollection(arr);
+      if (searchApiImages.page === 1) {
+        Notiflix.Notify.success(
+          `Hooray! We found ${searchApiImages.totalHits} images.`
+        );
+      }
+
+      createImagesCollection(hits);
     })
-    .catch(error => {
-      console.error(error);
-      Notiflix.Notify.failure(`${error}`);
-    });
+    .catch(errorShow)
+    .finally(resetForm);
+}
+
+function loadMore() {
+  searchApiImages
+    .getImages(searchApiImages.searchQuery)
+    .then(hits => {
+      if (hits.length === 0) {
+        Notiflix.Notify.info(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+        return;
+      }
+
+      if (searchApiImages.page === 1) {
+        Notiflix.Notify.success(
+          `Hooray! We found ${searchApiImages.totalHits} images.`
+        );
+      }
+
+      createImagesCollection(hits);
+    })
+    .catch(errorShow)
+    .finally(resetForm);
 }
 
 function createImagesCollection(arr) {
@@ -69,10 +96,19 @@ function createImagesCollection(arr) {
       }
     )
     .join('');
-  // console.log(markupImagesCollectiom);
-  gallery.innerHTML = markupImagesCollectiom;
+
+  gallery.insertAdjacentHTML('beforeend', markupImagesCollectiom);
 }
 
 function clearImagesWrapper() {
   imagesWrapper.innerHTML = '';
+}
+
+function resetForm() {
+  () => form.reset();
+};
+
+function errorShow(error) {
+  console.error(error);
+  Notiflix.Notify.failure(`${error}`);
 }

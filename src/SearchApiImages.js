@@ -5,10 +5,11 @@ export default class SearchApiImages {
   constructor() {
     this.page = 1;
     this.searchQuery = '';
+    this.totalHits = null;
   }
 
   getImages() {
-    const URL = `${ENDPOINT}?key=${KEY}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=5&page=${this.page}`;
+    const URL = `${ENDPOINT}?key=${KEY}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=4&page=${this.page}`;
 
     return fetch(URL).then(response => {
       if (!response.ok) {
@@ -17,7 +18,9 @@ export default class SearchApiImages {
 
       return response.json();
     }).then(data => {
-      return data.hits
+      this.totalHits = data.totalHits;
+      this.nextPage();
+      return data.hits;
     });
   }
 
