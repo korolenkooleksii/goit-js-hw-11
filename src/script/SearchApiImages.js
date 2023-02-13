@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const KEY = '33551348-9d68666fc5ce894df97e3b30d';
 const ENDPOINT = 'https://pixabay.com/api/';
 
@@ -8,20 +10,16 @@ export default class SearchApiImages {
     this.totalHits = null;
   }
 
-  getImages() {
+  async getImages() {
     const URL = `${ENDPOINT}?key=${KEY}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=4&page=${this.page}`;
 
-    return fetch(URL).then(response => {
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
+    const response = await axios(URL);
+    const hits = response.data.hits;
 
-      return response.json();
-    }).then(data => {
-      this.totalHits = data.totalHits;
-      this.nextPage();
-      return data.hits;
-    });
+    this.totalHits = response.data.totalHits;
+    this.nextPage();
+
+    return hits;
   }
 
   nextPage() {

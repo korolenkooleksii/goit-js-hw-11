@@ -1,4 +1,5 @@
-import Notiflix from 'notiflix';
+import { Notify } from 'notiflix';
+import axios from 'axios';
 import SearchApiImages from './script/SearchApiImages.js';
 import LoadMoreBtn from './script/components/loadMoreBtn.js';
 
@@ -31,28 +32,32 @@ function searchImg(e) {
   fetchImages().finally(resetForm);
 }
 
-function fetchImages() {
+async function fetchImages() {
   loadMoreBtn.disable();
-  return searchApiImages
-    .getImages()
-    .then(hits => {
-      if (hits.length === 0) {
-        Notiflix.Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-        loadMoreBtn.hide();
-        return;
-      }
 
-      if (searchApiImages.page === 2) {
-        Notiflix.Notify.success(
-          `Hooray! We found ${searchApiImages.totalHits} images.`
-        );
-      }
+  try {
+    const hits = await searchApiImages.getImages()
+    console.log("fetchImages  hits", hits)
+    
+    
+    if (hits.length === 0) {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      clearImagesCollection();
+      loadMoreBtn.hide();
+      return;
+    }
 
-      createImagesCollection(hits);
-    })
-    .catch(errorShow);
+    if (searchApiImages.page === 2) {
+      Notify.success(`Hooray! We found ${searchApiImages.totalHits} images.`);
+    }
+
+    createImagesCollection(hits);
+
+  } catch (error) {
+    errorShow();
+  }
 }
 
 function createImagesCollection(arr) {
@@ -101,6 +106,27 @@ function resetForm() {
 }
 
 function errorShow(error) {
-  console.error(error);
-  Notiflix.Notify.failure(`${error}`);
+  Notify.failure('Error');
+  loadMoreBtn.hide();
+  console.error(error.massege);
+  
 }
+
+// const KEY = '3551348-9d68666fc5ce894df97e3b30d';
+// const ENDPOINT = 'https://pixabay.com/api/';
+
+// function getImages() {
+//   const URL = `${ENDPOINT}?key=${KEY}&q=cat&image_type=photo&orientation=horizontal&safesearch=true&per_page=4&page=1`;
+
+//   try {
+//     return axios.get(URL).then(response => {
+//       console.log(response);
+//       console.log(5 + 5);
+//       Notify.success(`Hooray!`);
+//     });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
+
+// getImages();
