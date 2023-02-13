@@ -1,5 +1,6 @@
-import { Notify } from 'notiflix';
-import axios from 'axios';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 import SearchApiImages from './script/SearchApiImages.js';
 import LoadMoreBtn from './script/components/loadMoreBtn.js';
 
@@ -16,11 +17,22 @@ const loadMoreBtn = new LoadMoreBtn({ selector: '.load-more', isHidden: true });
 form.addEventListener('submit', searchImg);
 loadMoreBtn.button.addEventListener('click', fetchImages);
 
+let totalPages = null;
+
+const lightbox = new SimpleLightbox('.gallery a');
+
 function searchImg(e) {
   e.preventDefault();
 
   const form = e.currentTarget;
   const value = form.elements.search.value.trim();
+
+  if (value.length === 0) {
+    Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+    return;
+  }
 
   searchApiImages.searchQuery = value;
 
@@ -29,17 +41,19 @@ function searchImg(e) {
 
   loadMoreBtn.show();
 
-  fetchImages().finally(resetForm);
+  fetchImages();
+  resetForm();
 }
 
 async function fetchImages() {
-  loadMoreBtn.disable();
+  
 
   try {
-    const hits = await searchApiImages.getImages()
-    console.log("fetchImages  hits", hits)
-    
-    
+    loadMoreBtn.disable();
+    const hits = await searchApiImages.getImages();
+
+    totalPages = Math.ceil(searchApiImages.totalHits / searchApiImages.perPage);
+
     if (hits.length === 0) {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
@@ -53,8 +67,13 @@ async function fetchImages() {
       Notify.success(`Hooray! We found ${searchApiImages.totalHits} images.`);
     }
 
-    createImagesCollection(hits);
+    if (searchApiImages.page > totalPages) {
+      Notify.info("We're sorry, but you've reached the end of search results.");
+      loadMoreBtn.hide();
+    }
 
+    createImagesCollection(hits);
+    lightbox.refresh();
   } catch (error) {
     errorShow();
   }
@@ -73,22 +92,21 @@ function createImagesCollection(arr) {
         downloads,
       }) => {
         return `<div class="photo-card">
-  <img src="${webformatURL}" alt="${tags}" loading="lazy" width="640" height="427" />
-  <div class="info">
-    <p class="info-item">
-      <b>Likes</b>${likes}
-    </p>
-    <p class="info-item">
-      <b>Views</b>${views}
-    </p>
-    <p class="info-item">
-      <b>Comments</b>${comments}
-    </p>
-    <p class="info-item">
-      <b>Downloads</b>${downloads}
-    </p>
-  </div>
-</div>`;
+      <a href="${largeImageURL}">
+        <img
+          src="${webformatURL}"
+          alt="${tags}"
+          loading="lazy"
+          width="640"
+          height="427"
+      /></a>
+      <div class="info">
+        <p class="info-item"><b>Likes</b>${likes}</p>
+        <p class="info-item"><b>Views</b>${views}</p>
+        <p class="info-item"><b>Comments</b>${comments}</p>
+        <p class="info-item"><b>Downloads</b>${downloads}</p>
+      </div>
+    </div>`;
       }
     )
     .join('');
@@ -109,24 +127,4 @@ function errorShow(error) {
   Notify.failure('Error');
   loadMoreBtn.hide();
   console.error(error.massege);
-  
 }
-
-// const KEY = '3551348-9d68666fc5ce894df97e3b30d';
-// const ENDPOINT = 'https://pixabay.com/api/';
-
-// function getImages() {
-//   const URL = `${ENDPOINT}?key=${KEY}&q=cat&image_type=photo&orientation=horizontal&safesearch=true&per_page=4&page=1`;
-
-//   try {
-//     return axios.get(URL).then(response => {
-//       console.log(response);
-//       console.log(5 + 5);
-//       Notify.success(`Hooray!`);
-//     });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// }
-
-// getImages();
