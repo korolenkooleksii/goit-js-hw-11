@@ -46,8 +46,6 @@ function searchImg(e) {
 }
 
 async function fetchImages() {
-  
-
   try {
     loadMoreBtn.disable();
     const hits = await searchApiImages.getImages();
