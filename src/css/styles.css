@@ -28,6 +28,7 @@ body {
   height: 80px;
   background-color: rgba(54, 57, 236, 0.7);
   margin: 0 auto;
+  z-index: 999;
 }
 
 .search-form {
@@ -92,6 +93,7 @@ img:hover {
   width: 100%;
   height: 270px;
   overflow: hidden;
+  border-radius: 10px;
 }
 
 .gallery {

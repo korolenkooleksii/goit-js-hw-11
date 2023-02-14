@@ -38,9 +38,7 @@ function searchImg(e) {
 
   searchApiImages.resetPage();
   clearImagesCollection();
-
   loadMoreBtn.show();
-
   fetchImages();
   resetForm();
 }
@@ -71,6 +69,9 @@ async function fetchImages() {
     }
 
     createImagesCollection(hits);
+
+    if (searchApiImages.page > 2) scrollTheCollection();
+
     lightbox.refresh();
   } catch (error) {
     errorShow();
@@ -115,11 +116,24 @@ function clearImagesCollection() {
 }
 
 function resetForm() {
-  () => form.reset();
+  form.reset();
 }
 
 function errorShow(error) {
   Notify.failure('Error');
   loadMoreBtn.hide();
   console.error(error.massege);
+}
+
+function scrollTheCollection() {
+  const { height: cardHeight } =
+    gallery.firstElementChild.getBoundingClientRect();
+  console.log('cardHeight - ', cardHeight); // высота картинки
+
+  console.log('searchApiImages.page', searchApiImages.page);
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
 }
