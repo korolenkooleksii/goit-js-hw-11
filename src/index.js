@@ -128,9 +128,6 @@ function errorShow(error) {
 function scrollTheCollection() {
   const { height: cardHeight } =
     gallery.firstElementChild.getBoundingClientRect();
-  console.log('cardHeight - ', cardHeight); // высота картинки
-
-  console.log('searchApiImages.page', searchApiImages.page);
 
   window.scrollBy({
     top: cardHeight * 2,
